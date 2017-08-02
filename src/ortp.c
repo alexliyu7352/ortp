@@ -24,6 +24,7 @@
 #include "ortp/ortp.h"
 #include <inttypes.h>
 #include "scheduler.h"
+#include "rtptimer.h"
 
 rtp_stats_t ortp_global_stats;
 
@@ -93,6 +94,7 @@ void ortp_init()
 void ortp_scheduler_init()
 {
 	static bool_t initialized=FALSE;
+	RtpTimer *timer=&posix_timer;
 	if (initialized) return;
 	initialized=TRUE;
 #ifdef __hpux
@@ -106,6 +108,7 @@ void ortp_scheduler_init()
 #endif /* __hpux */
 
 	__ortp_scheduler=rtp_scheduler_new();
+	rtp_scheduler_set_timer(__ortp_scheduler,timer);
 	rtp_scheduler_start(__ortp_scheduler);
 }
 
