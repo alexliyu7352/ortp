@@ -1311,34 +1311,31 @@ int rtp_session_recv_with_ts (RtpSession * session, uint8_t * buffer,
 	mblk_t *mp=NULL;
 	int plen,blen=0;
 	*have_more=0;
-	while(1){
-		if (session->pending){
-			mp=session->pending;
-			session->pending=NULL;
-		}else {
-			mp=rtp_session_recvm_with_ts(session,ts);
-			if (mp!=NULL) rtp_get_payload(mp,&mp->b_rptr);
+	if (session->pending){
+		mp=session->pending;
+		session->pending=NULL;
+	}else {
+		mp=rtp_session_recvm_with_ts(session,ts);
+		if (mp!=NULL) rtp_get_payload(mp,&mp->b_rptr);
+	}
+	if (mp){
+		plen=(int)(mp->b_wptr-mp->b_rptr);
+		if (plen<=len){
+			memcpy(buffer,mp->b_rptr,plen);
+			buffer+=plen;
+			blen+=plen;
+			len-=plen;
+			freemsg(mp);
+			mp=NULL;
+		}else{
+			memcpy(buffer,mp->b_rptr,len);
+			mp->b_rptr+=len;
+			buffer+=len;
+			blen+=len;
+			len=0;
+			session->pending=mp;
+			*have_more=1;
 		}
-		if (mp){
-			plen=(int)(mp->b_wptr-mp->b_rptr);
-			if (plen<=len){
-				memcpy(buffer,mp->b_rptr,plen);
-				buffer+=plen;
-				blen+=plen;
-				len-=plen;
-				freemsg(mp);
-				mp=NULL;
-			}else{
-				memcpy(buffer,mp->b_rptr,len);
-				mp->b_rptr+=len;
-				buffer+=len;
-				blen+=len;
-				len=0;
-				session->pending=mp;
-				*have_more=1;
-				break;
-			}
-		}else break;
 	}
 	return blen;
 }
