@@ -325,7 +325,7 @@ int rtp_session_read_telephone_event(RtpSession *session,
 	rtp_header_t *hdr=(rtp_header_t*)packet->b_rptr;
 	unsigned char *payload;
 	if (rtp_profile_is_telephone_event(session->rcv.profile, hdr->paytype)) return 0;  /* this is not tel ev.*/
-	datasize=rtp_get_payload(packet,&payload);
+	datasize=rtp_get_payload(packet,&payload, NULL);
 	tev=*tab=(telephone_event_t*)payload;
 	/* convert from network to host order what should be */
 	num=datasize/sizeof(telephone_event_t);
@@ -371,7 +371,7 @@ void rtp_session_check_telephone_events(RtpSession *session, mblk_t *m0)
 	
 	hdr=(rtp_header_t*)m0->b_rptr;
 	
-	datasize=rtp_get_payload(m0,&payload);
+	datasize=rtp_get_payload(m0,&payload, NULL);
 
 	num=datasize/sizeof(telephone_event_t);
 	events=(telephone_event_t*)payload;
@@ -396,7 +396,7 @@ void rtp_session_check_telephone_events(RtpSession *session, mblk_t *m0)
 		if (((rtp_header_t*)cur_tev->b_rptr)->timestamp==
 			((rtp_header_t*)m0->b_rptr)->timestamp)
 		{
-			datasize=rtp_get_payload(cur_tev,&payload);
+			datasize=rtp_get_payload(cur_tev,&payload, NULL);
 			num2=datasize/sizeof(telephone_event_t);
 			evbuf=(telephone_event_t*)payload;
 			for (i=0;i<MIN(num,num2);i++)

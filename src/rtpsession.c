@@ -1307,7 +1307,8 @@ rtp_session_recvm_with_ts (RtpSession * session, uint32_t user_ts)
  *
 **/
 int rtp_session_recv_with_ts (RtpSession * session, uint8_t * buffer,
-				   int len, uint32_t ts, int * have_more){
+				   int len, uint32_t ts, uint32_t *packet_ts,
+				   int * have_more){
 	mblk_t *mp=NULL;
 	int plen,blen=0;
 	*have_more=0;
@@ -1316,7 +1317,7 @@ int rtp_session_recv_with_ts (RtpSession * session, uint8_t * buffer,
 		session->pending=NULL;
 	}else {
 		mp=rtp_session_recvm_with_ts(session,ts);
-		if (mp!=NULL) rtp_get_payload(mp,&mp->b_rptr);
+		if (mp!=NULL) rtp_get_payload(mp,&mp->b_rptr, packet_ts);
 	}
 	if (mp){
 		plen=(int)(mp->b_wptr-mp->b_rptr);
@@ -1892,10 +1893,14 @@ void rtp_add_csrc(mblk_t *mp, uint32_t csrc)
  * @param start a pointer to the beginning of the payload data, pointing inside the packet.
  * @return the length of the payload data.
 **/
-int rtp_get_payload(mblk_t *packet, unsigned char **start){
+int rtp_get_payload(mblk_t *packet, unsigned char **start, uint32_t *packet_ts){
 	unsigned char *tmp;
+	rtp_header_t *rtp = (rtp_header_t *)packet->b_rptr;
 	int header_len=RTP_FIXED_HEADER_SIZE+(rtp_get_cc(packet)*4);
 	tmp=packet->b_rptr+header_len;
+	if (packet_ts != NULL) {
+	    *packet_ts = rtp->timestamp;
+	}
 	if (tmp>packet->b_wptr){
 		if (packet->b_cont!=NULL){
 			tmp=packet->b_cont->b_rptr+(header_len- (packet->b_wptr-packet->b_rptr));
