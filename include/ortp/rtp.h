@@ -121,7 +121,7 @@ ORTP_PUBLIC void rtp_add_csrc(mblk_t *mp ,uint32_t csrc);
 #define rtp_get_cc(mp)		(((rtp_header_t*)((mp)->b_rptr))->cc)
 #define rtp_get_csrc(mp, idx)		(((rtp_header_t*)((mp)->b_rptr))->csrc[idx])
 
-ORTP_PUBLIC int rtp_get_payload(mblk_t *packet, unsigned char **start);
+ORTP_PUBLIC int rtp_get_payload(mblk_t *packet, unsigned char **start, uint32_t *packet_ts);
 ORTP_PUBLIC int rtp_get_extheader(mblk_t *packet, uint16_t *profile, uint8_t **start_ext);
 
 #ifdef __cplusplus
